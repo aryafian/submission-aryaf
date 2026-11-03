@@ -21,6 +21,7 @@ Request yang sudah rejected tidak saya ubah atau saya reset, karena riwayat peno
 4. Satu kolom yang akan saya ubah
 
 Saya akan menambah category_id di tabel approval_workflows. Sekarang hubungan category ke approval line lewat tabel perantara, padahal aturan bisnisnya satu category hanya punya satu alur aktif. Dengan kolom langsung, join berkurang dan saya bisa memasang unique constraint supaya database sendiri yang menjamin tidak ada dua alur aktif untuk category yang sama, tidak hanya mengandalkan kode aplikasi. Alternatifnya, saya akan menambah parent_request_id di tabel request untuk melacak riwayat revisi dengan rapi.
+
 ---
 
 ## 8. Bukti Tangkapan Layar / Screenshots
