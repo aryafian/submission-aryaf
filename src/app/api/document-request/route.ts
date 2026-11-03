@@ -1,0 +1,47 @@
+import { NextRequest } from 'next/server'
+import { DocumentRequestUsecase } from '@/modules/v1/server/document-request/usecases/document-request.usecase'
+import { createDocumentRequestSchema } from '@/modules/v1/server/document-request/domains/document-request.schema'
+import { apiSuccess, apiError, apiUnauthorized, apiForbidden } from '@/src/shared/utils/api-response'
+import { ZodError } from 'zod'
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = req.nextUrl
+    const page = Number(searchParams.get('page')) || 1
+    const perPage = Number(searchParams.get('per_page')) || 20
+    const keywords = searchParams.get('keywords') || ''
+    const myOnly = searchParams.get('my_only') === 'true'
+
+    const result = await DocumentRequestUsecase.list(page, perPage, keywords, myOnly)
+    return apiSuccess(result)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    if (message === 'Unauthorized') return apiUnauthorized()
+    if (message === 'Forbidden') return apiForbidden()
+    return apiError(message, 'E-000', 500)
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const validated = createDocumentRequestSchema.parse(body)
+
+    const result = await DocumentRequestUsecase.create({
+      title: validated.title,
+      description: validated.description ?? undefined,
+      categoryId: validated.categoryId,
+    })
+
+    return apiSuccess(result, 'Document request created')
+  } catch (err: unknown) {
+    if (err instanceof ZodError) {
+      const message = err.errors.map((e) => e.message).join(', ')
+      return apiError(message, 'E-VAL', 400)
+    }
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    if (message === 'Unauthorized') return apiUnauthorized()
+    if (message === 'Forbidden') return apiForbidden()
+    return apiError(message, 'E-000', 500)
+  }
+}

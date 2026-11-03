@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 100% 99%;
+    --foreground: 215 62% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 62% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --popover-foreground: 215 62% 12%;
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 217 19% 39%;
+    --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 214 100% 97%;
+    --accent-foreground: 215 62% 12%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 222 47% 11%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 }
 
@@ -32,12 +32,20 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-surface text-on-surface;
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
   }
 }
 
-body {
-  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+/* Hide Microsoft Edge / IE native password reveal button to prevent duplicate eye icons */
+input::-ms-reveal,
+input::-ms-clear,
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
 }
 
 @layer utilities {
@@ -48,23 +56,4 @@ body {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-}
-
-@keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
 }

@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // default with cyan to pink gradient
-        default: "bg-gradient-to-r from-cyan-500 to-pink-500 text-white hover:from-cyan-600 hover:to-pink-600 aria-expanded:bg-gradient-to-r aria-expanded:from-cyan-600 aria-expanded:to-pink-600 dark:hover:from-cyan-400 dark:hover:to-pink-400 dark:aria-expanded:from-cyan-400 dark:aria-expanded:to-pink-400",
+        default: "bg-[#ec4899] hover:bg-[#db2777] text-black font-semibold shadow-sm transition-colors cursor-pointer",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

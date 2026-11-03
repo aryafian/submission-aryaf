@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Plus, Loader2, Search, Pencil, Trash2, Shield } from 'lucide-react'
+import { Plus, Loader2, Search, Pencil, Trash2, Shield, RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { useSession } from 'next-auth/react'
@@ -21,6 +21,8 @@ export function UserTable() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
@@ -29,7 +31,7 @@ export function UserTable() {
   const canManage = session?.user?.permissions?.includes('user.manage')
 
   useEffect(() => {
-    setTitle('Users', 'Manage system users and their roles')
+    setTitle('Users')
   }, [setTitle])
 
   const fetchData = useCallback(async (q: string, p: number) => {
@@ -54,7 +56,7 @@ export function UserTable() {
   async function handleDelete(id: number) {
     try {
       await UserRepository.softDelete(id)
-      toast.success('User deleted')
+      toast.success('User deleted successfully')
       fetchData(debouncedSearch, page)
     } catch {
       toast.error('Failed to delete user')
@@ -62,114 +64,258 @@ export function UserTable() {
     setDeleteTarget(null)
   }
 
-  const items = pageData?.items ?? []
+  const allItems = pageData?.items ?? []
+  const filteredItems = allItems.filter(u => {
+    if (roleFilter !== 'all') {
+      const hasRole = u.roles?.some(r => (typeof r === 'string' ? r : (r as { name: string }).name).toLowerCase() === roleFilter.toLowerCase())
+      if (!hasRole) return false
+    }
+    if (statusFilter !== 'all') {
+      const isActive = statusFilter === 'Active'
+      if (u.is_active !== isActive) return false
+    }
+    return true
+  })
+
+  const totalUsers = pageData?.pagination?.total ?? allItems.length
   const totalPages = pageData?.pagination?.total_pages ?? 1
 
   return (
-    <>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="px-5 py-4 flex flex-col lg:flex-row gap-3 justify-between items-center border-b border-slate-100">
-          <div className="relative w-full max-w-md">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400"
-            />
+    <div className="flex flex-col w-full space-y-space-lg">
+      {/* Top Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+        <div className="flex flex-col space-y-1">
+          <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary tracking-wider uppercase font-medium">
+            <span>User Management</span>
+            <span className="text-outline-variant font-mono-data">/</span>
+            <span className="text-on-surface font-semibold">Users</span>
           </div>
-          {canManage && (
-            <Button onClick={() => { setEditing(null); setFormOpen(true) }} className="rounded-lg bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white shadow-sm gap-2 whitespace-nowrap cursor-pointer">
-              <Plus size={16} /> New User
-            </Button>
-          )}
+          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">Users</h1>
         </div>
 
+        {canManage && (
+          <div className="flex items-center gap-space-sm self-start md:self-auto">
+            <button
+              onClick={() => { setEditing(null); setFormOpen(true) }}
+              type="button"
+              className="h-9 px-space-md rounded-lg bg-[#ec4899] hover:bg-[#db2777] text-black font-label-md text-label-md flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.12)] transition-colors cursor-pointer font-semibold"
+            >
+              <Plus className="w-4 h-4 text-black" />
+              <span className="text-black">New User</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Table Container */}
+      <div className="bg-surface-container-lowest rounded-lg shadow-sm border border-outline-variant/30 overflow-hidden">
+        {/* Table Header & Controls Bar */}
+        <div className="p-space-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-md border-b border-outline-variant/30">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-outline" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search users by name, username, or email..."
+              className="w-full h-8 pl-8 pr-3 rounded bg-surface-container-low text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none focus:bg-surface-container border border-transparent focus:border-outline-variant/60 transition-colors text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-space-sm flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-1.5 h-8 px-2.5 rounded bg-surface-container-low font-label-md text-label-md text-on-surface">
+              <span className="text-secondary font-normal">Role:</span>
+              <select
+                value={roleFilter}
+                onChange={e => setRoleFilter(e.target.value)}
+                className="bg-transparent font-medium text-on-surface focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="all">All</option>
+                <option value="super-admin">super-admin</option>
+                <option value="admin">admin</option>
+                <option value="approver">approver</option>
+                <option value="viewer">viewer</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 h-8 px-2.5 rounded bg-surface-container-low font-label-md text-label-md text-on-surface">
+              <span className="text-secondary font-normal">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="bg-transparent font-medium text-on-surface focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="all">All</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => fetchData(debouncedSearch, page)}
+              type="button"
+              className="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer"
+              title="Refresh dataset"
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Data Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-slate-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-outline" />
           </div>
-        ) : items.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            {search ? 'No users match your search' : 'No users yet.'}
+        ) : filteredItems.length === 0 ? (
+          <div className="p-12 text-center text-secondary font-body-md text-sm">
+            {search ? 'No users match your search.' : 'No users found.'}
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="px-5 py-3 text-left font-medium text-slate-600">Name</th>
-                    <th className="px-5 py-3 text-left font-medium text-slate-600">Username</th>
-                    <th className="px-5 py-3 text-left font-medium text-slate-600">Email</th>
-                    <th className="px-5 py-3 text-left font-medium text-slate-600">Roles</th>
-                    <th className="px-5 py-3 text-left font-medium text-slate-600">Status</th>
-                    {canManage && <th className="px-5 py-3 text-right font-medium text-slate-600">Actions</th>}
+                  <tr className="bg-surface-container-low/70">
+                    <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider">Name</th>
+                    <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider">Username</th>
+                    <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider">Email</th>
+                    <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider">Roles</th>
+                    <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider">Status</th>
+                    {canManage && <th className="py-2.5 px-margin font-label-sm text-label-sm font-semibold text-secondary uppercase tracking-wider text-right">Actions</th>}
                   </tr>
                 </thead>
-                <tbody>
-                  {items.map(user => (
-                    <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3 font-medium text-slate-800">{user.name}</td>
-                      <td className="px-5 py-3 text-slate-500">{user.username}</td>
-                      <td className="px-5 py-3 text-slate-500">{user.email}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles?.map(role => (
-                            <span key={role} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
-                              <Shield size={10} /> {role}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${user.is_active ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                          {user.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      {canManage && (
-                        <td className="px-5 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button onClick={() => setRoleTarget(user)} variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50 h-8 w-8 p-0 cursor-pointer" title="Manage Roles">
-                              <Shield size={14} />
-                            </Button>
-                            <Button onClick={() => { setEditing(user); setFormOpen(true) }} variant="ghost" size="sm" className="text-cyan-600 hover:bg-cyan-50 h-8 w-8 p-0 cursor-pointer">
-                              <Pencil size={14} />
-                            </Button>
-                            <Button onClick={() => setDeleteTarget(user)} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 h-8 w-8 p-0 cursor-pointer">
-                              <Trash2 size={14} />
-                            </Button>
+                <tbody className="divide-y divide-outline-variant/15 font-body-md text-body-md text-on-surface">
+                  {filteredItems.map(user => {
+                    const initials = user.name
+                      ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                      : user.username.slice(0, 2).toUpperCase()
+                    const isRoot = user.roles?.some(r => (typeof r === 'string' ? r : (r as { name: string }).name) === 'super-admin')
+
+                    return (
+                      <tr key={user.id} className="hover:bg-surface-container-low/60 transition-colors group h-12">
+                        <td className="py-3 px-margin font-body-md text-body-md font-semibold text-on-surface whitespace-nowrap">
+                          <div className="flex items-center gap-space-sm">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center font-label-sm text-label-sm font-bold ${isRoot ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface'}`}>
+                              {initials}
+                            </div>
+                            <span>{user.name}</span>
+                            {isRoot && (
+                              <span className="px-1.5 py-0.2 rounded font-mono-data text-[10px] bg-primary text-on-primary font-medium tracking-wide">
+                                ROOT
+                              </span>
+                            )}
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="py-3 px-margin font-mono-data text-mono-data text-secondary whitespace-nowrap">
+                          {user.username}
+                        </td>
+                        <td className="py-3 px-margin font-mono-data text-mono-data text-on-surface whitespace-nowrap">
+                          {user.email || '-'}
+                        </td>
+                        <td className="py-3 px-margin whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles?.map((roleItem, rIdx) => {
+                              const roleName = typeof roleItem === 'string' ? roleItem : (roleItem as { name: string }).name
+                              return (
+                                <span
+                                  key={rIdx}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-data text-mono-data ${
+                                    roleName === 'super-admin'
+                                      ? 'bg-primary text-on-primary'
+                                      : 'bg-secondary-container/60 text-on-secondary-container'
+                                  }`}
+                                >
+                                  <Shield className="w-3 h-3" />
+                                  <span>{roleName}</span>
+                                </span>
+                              )
+                            })}
+                          </div>
+                        </td>
+                        <td className="py-3 px-margin whitespace-nowrap">
+                          <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-medium ${user.is_active ? 'bg-[#ecfdf5] text-[#059669]' : 'bg-surface-container-low text-secondary'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? 'bg-[#10b981]' : 'bg-outline'}`} />
+                            <span>{user.is_active ? 'Active' : 'Inactive'}</span>
+                          </div>
+                        </td>
+                        {canManage && (
+                          <td className="py-3 px-margin whitespace-nowrap text-right">
+                            <div className="inline-flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => setRoleTarget(user)}
+                                className="w-7 h-7 rounded flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+                                title="Manage Roles"
+                                type="button"
+                              >
+                                <Shield className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => { setEditing(user); setFormOpen(true) }}
+                                className="w-7 h-7 rounded flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+                                title="Edit User"
+                                type="button"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteTarget(user)}
+                                className="w-7 h-7 rounded flex items-center justify-center text-outline hover:text-error hover:bg-error-container transition-colors cursor-pointer"
+                                title="Delete User"
+                                type="button"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
 
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              total={pageData?.pagination?.total ?? 0}
-              onPageChange={setPage}
-            />
+            <div className="p-space-sm px-space-md bg-surface-container-low/20 border-t border-outline-variant/30 flex items-center justify-between">
+              <span className="font-label-sm text-label-sm text-secondary">
+                Showing <span className="font-semibold text-on-surface">{filteredItems.length}</span> of <span className="font-semibold text-on-surface">{totalUsers}</span> users
+              </span>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={totalUsers}
+                onPageChange={setPage}
+              />
+            </div>
           </>
         )}
       </div>
 
       {formOpen && (
-        <UserForm user={editing} onClose={() => setFormOpen(false)} onSaved={() => { setFormOpen(false); fetchData(debouncedSearch, page) }} />
+        <UserForm
+          user={editing}
+          onClose={() => setFormOpen(false)}
+          onSaved={() => { setFormOpen(false); fetchData(debouncedSearch, page) }}
+        />
       )}
 
       {roleTarget && (
-        <AssignRoleModal user={roleTarget} onClose={() => setRoleTarget(null)} onSaved={() => { setRoleTarget(null); fetchData(debouncedSearch, page) }} />
+        <AssignRoleModal
+          user={roleTarget}
+          onClose={() => setRoleTarget(null)}
+          onSaved={() => { setRoleTarget(null); fetchData(debouncedSearch, page) }}
+        />
       )}
 
-      <ConfirmDialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
         onConfirm={() => { if (deleteTarget) handleDelete(deleteTarget.id); return Promise.resolve() }}
-        title="Delete User" message={`Delete user "${deleteTarget?.name}"?`} confirmLabel="Delete" variant="danger" />
-    </>
+        title="Delete User"
+        message={`Delete user "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
+    </div>
   )
 }

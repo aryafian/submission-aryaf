@@ -25,7 +25,7 @@ export function ApprovalLinePage() {
   const canManage = session?.user?.permissions?.includes('configuration.approval-line.manage')
 
   useEffect(() => {
-    setTitle('Approval Lines', 'Configure approval workflows per feature')
+    setTitle('Approval Lines', 'Configure approval workflows per feature and category')
   }, [setTitle])
 
   function openNew() {
@@ -46,13 +46,32 @@ export function ApprovalLinePage() {
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
-        <div />
+    <div className="flex flex-col w-full space-y-space-lg">
+      {/* Top Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+        <div className="flex flex-col space-y-1">
+          <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary tracking-wider uppercase font-medium">
+            <span>Configuration</span>
+            <span className="text-outline-variant font-mono-data">/</span>
+            <span className="text-on-surface font-semibold">Approval Lines</span>
+          </div>
+          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">Approval Lines</h1>
+          <p className="font-body-md text-body-md text-secondary">
+            Configure multi-tier sequential approval workflow chains per category and feature.
+          </p>
+        </div>
+
         {canManage && (
-          <Button onClick={openNew} className="rounded-lg bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white shadow-sm gap-2 cursor-pointer">
-            <Plus size={16} /> New Approval Line
-          </Button>
+          <div className="flex items-center gap-space-sm self-start md:self-auto">
+            <button
+              onClick={openNew}
+              type="button"
+              className="h-9 px-space-md rounded-lg bg-[#ec4899] hover:bg-[#db2777] text-black font-label-md text-label-md flex items-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.12)] transition-colors cursor-pointer font-semibold"
+            >
+              <Plus className="w-4 h-4 text-black" />
+              <span className="text-black">New Approval Line</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -69,30 +88,40 @@ export function ApprovalLinePage() {
         onViewSteps={item => setStepsTarget(item)}
       />
 
-      <ApprovalLineForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSaved={() => { setFormOpen(false); fetchData() }}
-        item={editing}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-      />
+      {formOpen && (
+        <ApprovalLineForm
+          open={formOpen}
+          item={editing}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onSaved={() => {
+            setFormOpen(false)
+            fetchData()
+          }}
+          onClose={() => setFormOpen(false)}
+        />
+      )}
 
-      <ApprovalLineSteps
-        open={stepsTarget !== null}
-        onClose={() => setStepsTarget(null)}
-        workflow={stepsTarget}
-      />
+      {stepsTarget && (
+        <ApprovalLineSteps
+          open={!!stepsTarget}
+          workflow={stepsTarget}
+          onClose={() => {
+            setStepsTarget(null)
+            fetchData()
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         title="Delete Approval Line"
-        message={`Delete "${deleteTarget?.name}"? This will also remove all its steps.`}
+        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
         confirmLabel="Delete"
         variant="danger"
       />
-    </>
+    </div>
   )
 }

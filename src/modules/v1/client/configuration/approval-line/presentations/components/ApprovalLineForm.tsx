@@ -118,7 +118,7 @@ export function ApprovalLineForm({ open, onClose, onSaved, item, onCreate, onUpd
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="cursor-pointer">Cancel</Button>
-            <Button type="submit" disabled={saving || !name.trim() || !featureId} className="bg-gradient-to-r from-cyan-500 to-pink-500 text-white cursor-pointer">
+            <Button type="submit" disabled={saving || !name.trim() || !featureId} className="bg-[#ec4899] hover:bg-[#db2777] text-black cursor-pointer font-label-md text-label-md rounded font-semibold">
               {saving ? <><Loader2 size={14} className="animate-spin mr-2" /> Saving...</> : isEdit ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>

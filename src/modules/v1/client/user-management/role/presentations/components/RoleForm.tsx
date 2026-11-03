@@ -2,12 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { Role } from '../../domains/role.entity'
-
 import { RoleRepository } from '../../repositories/role.repository'
 
 interface RoleFormProps {
@@ -35,10 +34,10 @@ export function RoleForm({ role, onClose, onSaved }: RoleFormProps) {
     try {
       if (role) {
         await RoleRepository.update(role.id, { name })
-        toast.success('Role updated')
+        toast.success('Role updated successfully')
       } else {
         await RoleRepository.create({ name })
-        toast.success('Role created')
+        toast.success('Role created successfully')
       }
       onSaved()
     } catch {
@@ -49,17 +48,58 @@ export function RoleForm({ role, onClose, onSaved }: RoleFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg border border-slate-200">
-        <h3 className="mb-5 text-lg font-bold text-slate-900">{role ? 'Edit Role' : 'New Role'}</h3>
-        <div className="mb-5">
-          <Label htmlFor="role-name" className="mb-1.5 block">Role Name *</Label>
-          <Input id="role-name" ref={nameRef} value={name} onChange={e => setName(e.target.value)} required className="rounded-xl" placeholder="e.g. admin, editor, viewer" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg bg-surface-container-lowest p-6 shadow-xl border border-outline-variant/30">
+        <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-5">
+          <div className="flex items-center gap-2">
+            <h3 className="font-headline-sm text-headline-sm font-semibold text-on-surface">
+              {role ? 'Edit Role' : 'New Role'}
+            </h3>
+            <span className="px-1.5 py-0.5 rounded font-mono-data text-[10px] bg-secondary-container text-on-secondary-container">
+              RBAC Policy
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-outline hover:text-on-surface rounded p-1 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" size="lg" onClick={onClose} className="rounded-xl">Cancel</Button>
-          <Button type="submit" size="lg" disabled={saving} className="rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white shadow-lg gap-2">
-            {saving ? <><Loader2 size={15} className="animate-spin" /> Saving...</> : role ? 'Update' : 'Create'}
+
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="role-name" className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block mb-1">
+              Role Name *
+            </Label>
+            <Input
+              id="role-name"
+              ref={nameRef}
+              value={name}
+              onChange={e => setName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+              required
+              className="rounded bg-surface-container-low border-outline-variant/40 text-on-surface font-mono-data text-xs focus:bg-surface-container-lowest focus:border-primary"
+              placeholder="e.g. auditor, compliance-officer"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2.5 pt-4 border-t border-outline-variant/30 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="font-label-md text-label-md rounded border-outline-variant/60 text-secondary hover:text-on-surface"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={saving}
+            className="bg-[#ec4899] hover:bg-[#db2777] text-black font-label-md text-label-md rounded shadow-sm gap-2 font-semibold"
+          >
+            {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> Saving...</> : role ? 'Save Changes' : 'Create Role'}
           </Button>
         </div>
       </form>

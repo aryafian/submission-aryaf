@@ -1,7 +1,6 @@
 'use client'
 
-import { Loader2, Pencil, Trash2, ListOrdered, MoreVertical } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Loader2, Pencil, Trash2, ListOrdered, Search } from 'lucide-react'
 import { Pagination } from '@/src/shared/partials/Pagination'
 import type { ApprovalLine } from '../../domains/approval-line.entity'
 import type { ApprovalLineList } from '../../domains/approval-line.list'
@@ -36,74 +35,95 @@ export function ApprovalLineTable({
   const totalPages = pagination?.total_pages ?? 1
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-      <div className="px-5 py-4 border-b border-slate-100">
+    <div className="bg-surface-container-lowest rounded-lg shadow-sm border border-outline-variant/30 overflow-hidden">
+      <div className="p-space-md border-b border-outline-variant/30">
         <div className="relative w-full max-w-md">
+          <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-outline" />
           <input
             type="text"
             placeholder="Search approval lines..."
             value={search}
             onChange={e => onSearchChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white pl-4 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400"
+            className="w-full h-8 pl-8 pr-3 rounded bg-surface-container-low font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container border border-transparent focus:border-outline-variant/60 transition-colors text-xs"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-slate-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-outline" />
         </div>
       ) : items.length === 0 ? (
-        <div className="p-12 text-center text-slate-500">
-          {search ? 'No approval lines match your search' : 'No approval lines yet.'}
+        <div className="p-12 text-center text-secondary font-body-md text-sm">
+          {search ? 'No approval lines match your search.' : 'No approval lines configured yet.'}
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-5 py-3 text-left font-medium text-slate-600">Name</th>
-                  <th className="px-5 py-3 text-left font-medium text-slate-600">Feature</th>
-                  <th className="px-5 py-3 text-left font-medium text-slate-600">Steps</th>
-                  <th className="px-5 py-3 text-left font-medium text-slate-600">Status</th>
-                  {canManage && <th className="px-5 py-3 text-right font-medium text-slate-600">Actions</th>}
+                <tr className="h-9 bg-surface-container-low/60 text-secondary font-label-sm text-label-sm uppercase tracking-wider">
+                  <th className="px-space-md py-2 font-medium">Workflow Name</th>
+                  <th className="px-space-md py-2 font-medium">Feature Scope</th>
+                  <th className="px-space-md py-2 font-medium">Steps</th>
+                  <th className="px-space-md py-2 font-medium">Status</th>
+                  {canManage && <th className="px-space-md py-2 font-medium text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-outline-variant/15 font-body-md text-body-md text-on-surface">
                 {items.map(item => (
-                  <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-slate-800">{item.name}</td>
-                    <td className="px-5 py-3 text-slate-500">
-                      {item.featureName && (
-                        <span className="inline-flex items-center rounded-lg bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 border border-purple-200">
+                  <tr key={item.id} className="h-12 hover:bg-surface-container-low/40 transition-colors">
+                    <td className="px-space-md font-semibold text-on-surface">
+                      {item.name}
+                    </td>
+                    <td className="px-space-md">
+                      {item.featureName ? (
+                        <span className="inline-flex items-center rounded-full bg-secondary-container px-2.5 py-0.5 font-mono-data text-[11px] font-semibold text-on-secondary-container">
                           {item.featureName}
                         </span>
+                      ) : (
+                        <span className="text-secondary text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-space-md">
                       <button
+                        type="button"
                         onClick={() => onViewSteps(item)}
-                        className="flex items-center gap-1.5 text-cyan-600 hover:text-cyan-700 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-mono-data text-[11px] transition-colors cursor-pointer"
                       >
-                        <ListOrdered size={14} />
-                        <span className="text-sm font-medium">{item.stepsCount ?? 0} steps</span>
+                        <ListOrdered className="w-3.5 h-3.5 text-secondary" />
+                        <span>{item.stepsCount ?? 0} sequential steps</span>
                       </button>
                     </td>
-                    <td className="px-5 py-3">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${item.isActive ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                    <td className="px-space-md">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-medium ${
+                        item.isActive
+                          ? 'bg-[#ecfdf5] text-[#059669]'
+                          : 'bg-surface-container-low text-secondary'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${item.isActive ? 'bg-[#059669]' : 'bg-outline'}`} />
                         {item.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     {canManage && (
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-space-md text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button onClick={() => onEdit(item)} variant="ghost" size="sm" className="text-cyan-600 hover:bg-cyan-50 h-8 w-8 p-0 cursor-pointer">
-                            <Pencil size={14} />
-                          </Button>
-                          <Button onClick={() => onDelete(item)} variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 h-8 w-8 p-0 cursor-pointer">
-                            <Trash2 size={14} />
-                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            className="w-7 h-7 rounded hover:bg-surface-container-low flex items-center justify-center text-secondary hover:text-on-surface transition-colors cursor-pointer"
+                            title="Edit Workflow"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onDelete(item)}
+                            className="w-7 h-7 rounded hover:bg-error-container/40 flex items-center justify-center text-outline hover:text-error transition-colors cursor-pointer"
+                            title="Delete Workflow"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     )}
@@ -113,12 +133,17 @@ export function ApprovalLineTable({
             </table>
           </div>
 
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            total={pagination?.total ?? 0}
-            onPageChange={onPageChange}
-          />
+          <div className="p-space-sm px-space-md bg-surface-container-low/20 border-t border-outline-variant/30 flex items-center justify-between">
+            <span className="font-label-sm text-label-sm text-secondary">
+              Showing <span className="font-semibold text-on-surface">{items.length}</span> of <span className="font-semibold text-on-surface">{pagination?.total ?? items.length}</span> workflows
+            </span>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={pagination?.total ?? 0}
+              onPageChange={onPageChange}
+            />
+          </div>
         </>
       )}
     </div>

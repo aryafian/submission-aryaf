@@ -1,31 +1,31 @@
 import type { Metadata } from 'next'
-import { SessionProvider } from 'next-auth/react'
+import { ClientProviders } from './client-providers'
 import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from 'sonner'
 import NextTopLoader from 'nextjs-toploader'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'skeleton',
-  description: 'Next.js Skeleton App with RBAC',
+  title: 'Skeleton Platform',
+  description: 'Enterprise Document Request & Approval Management System',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body>
-        <NextTopLoader color="#06b6d4" showSpinner={false} height={3} />
+      <body className="font-sans antialiased text-[#0b1c30] bg-[#f8f9ff]">
+        <NextTopLoader color="#131b2e" showSpinner={false} height={2} />
         <ThemeProvider>
-          <SessionProvider>
+          <ClientProviders>
             {children}
-            <Toaster richColors position="top-right" />
-          </SessionProvider>
+          </ClientProviders>
         </ThemeProvider>
       </body>
     </html>

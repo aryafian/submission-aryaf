@@ -104,10 +104,17 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                 const isExpanded = expandedGroups.has(gi)
                 return (
                   <div key={gi} className="border border-slate-200 rounded-xl overflow-hidden">
-                    <button
-                      type="button"
+                    <div
+                      role="button"
+                      tabIndex={0}
                       onClick={() => toggleGroup(gi)}
-                      className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleGroup(gi);
+                        }
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer select-none"
                     >
                       {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       <span className="text-xs font-bold text-slate-600 bg-slate-200 px-2 py-0.5 rounded">Group {gi + 1}</span>
@@ -115,12 +122,13 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                       <span className="text-xs text-slate-400 ml-auto">{group.groupType}</span>
                       <button
                         type="button"
-                        onClick={e => { e.stopPropagation(); removeGroup(gi) }}
+                        onClick={e => { e.stopPropagation(); removeGroup(gi); }}
                         className="p-1 rounded hover:bg-red-100 text-red-400 hover:text-red-600 transition-colors"
+                        title="Delete Group"
                       >
                         <Trash2 size={14} />
                       </button>
-                    </button>
+                    </div>
 
                     {isExpanded && (
                       <div className="p-4 space-y-3">
@@ -142,7 +150,7 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                           return (
                             <div key={si} className="border border-slate-200 rounded-lg p-3 space-y-3">
                               <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-white bg-cyan-500 w-6 h-6 rounded-full flex items-center justify-center">{currentStepNum}</span>
+                                <span className="text-xs font-bold text-white bg-[#ec4899] text-black font-semibold w-6 h-6 rounded-full flex items-center justify-center">{currentStepNum}</span>
                                 <div className="flex-1">
                                   <SearchableSelect
                                     options={APPROVER_TYPES}
@@ -187,7 +195,7 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                                 </div>
                               )}
 
-                              <div className="grid grid-cols-3 gap-3">
+                              <div className="grid grid-cols-[90px_1fr_auto] gap-3 items-end">
                                 <div>
                                   <label className="text-xs font-medium text-slate-500 mb-1 block">Min Approval</label>
                                   <input
@@ -195,7 +203,7 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                                     min={1}
                                     value={step.minApproval ?? 1}
                                     onChange={e => updateStep(gi, si, { minApproval: parseInt(e.target.value) || 1 })}
-                                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                                    className="h-9 w-full rounded-lg border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#ec4899]/20"
                                   />
                                 </div>
                                 <div>
@@ -204,18 +212,18 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                                     type="text"
                                     value={step.allowedActions ?? 'approve,reject'}
                                     onChange={e => updateStep(gi, si, { allowedActions: e.target.value })}
-                                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                                    className="h-9 w-full rounded-lg border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#ec4899]/20"
                                   />
                                 </div>
-                                <div className="flex items-end">
-                                  <label className="flex items-center gap-2 cursor-pointer">
+                                <div className="h-9 flex items-center">
+                                  <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
                                       type="checkbox"
                                       checked={step.isRequired ?? true}
                                       onChange={e => updateStep(gi, si, { isRequired: e.target.checked })}
-                                      className="w-4 h-4 rounded border-slate-300"
+                                      className="w-4 h-4 rounded border-slate-300 accent-[#ec4899] focus:ring-[#ec4899]"
                                     />
-                                    <span className="text-xs text-slate-600">Required</span>
+                                    <span className="text-xs font-medium text-slate-700">Required</span>
                                   </label>
                                 </div>
                               </div>
@@ -238,23 +246,22 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
                 )
               })}
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setAddGroupOpen(true)}
-                  className="gap-2 cursor-pointer"
+                  className="gap-2 cursor-pointer font-label-md text-label-md"
                 >
                   <Plus size={16} /> Add Group
                 </Button>
-                <div className="flex-1" />
                 <Button
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
-                  className="bg-gradient-to-r from-cyan-500 to-pink-500 text-white gap-2 cursor-pointer"
+                  className="bg-[#ec4899] hover:bg-[#db2777] text-black gap-2 cursor-pointer font-label-md text-label-md rounded font-semibold shadow-sm"
                 >
-                  {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <><Save size={14} /> Save Steps</>}
+                  {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <><Save size={14} /> Save Changes</>}
                 </Button>
               </div>
             </div>
@@ -279,7 +286,7 @@ export function ApprovalLineSteps({ open, onClose, workflow }: Props) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddGroupOpen(false)} className="cursor-pointer">Cancel</Button>
-            <Button onClick={handleAddGroup} className="bg-gradient-to-r from-cyan-500 to-pink-500 text-white cursor-pointer">Add</Button>
+            <Button onClick={handleAddGroup} className="bg-[#ec4899] hover:bg-[#db2777] text-black font-label-md text-label-md rounded cursor-pointer font-semibold">Add</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

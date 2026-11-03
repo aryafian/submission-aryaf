@@ -18,16 +18,14 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <TitleProvider>
-      <div className="min-h-screen flex bg-[#f9fbff]">
+      <div className="min-h-screen flex bg-surface font-body-md text-on-surface antialiased">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-0'}`}>
+        <div className="flex-1 min-w-0 flex flex-col lg:pl-64 transition-all duration-300">
           <Header onMenuClick={() => setSidebarOpen(prev => !prev)} sidebarOpen={sidebarOpen} />
 
-          <main className="flex-1 p-6 overflow-hidden">
-            <div className="h-full overflow-y-auto">
-              {children}
-            </div>
+          <main className="w-full flex-1 px-gutter lg:px-margin py-space-lg bg-surface">
+            {children}
           </main>
         </div>
       </div>
